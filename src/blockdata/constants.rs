@@ -61,7 +61,7 @@ pub fn max_money(_: Network) -> u64 {
 }
 
 /// Constructs and returns the coinbase (and only) transaction of the Bitcoin genesis block
-fn bitcoin_genesis_tx() -> Transaction {
+fn digibyte_genesis_tx() -> Transaction {
     // Base
     let mut ret = Transaction {
         version: 1,
@@ -98,11 +98,11 @@ fn bitcoin_genesis_tx() -> Transaction {
 
 /// Constructs and returns the genesis block
 pub fn genesis_block(network: Network) -> Block {
-    let txdata = vec![bitcoin_genesis_tx()];
+    let txdata = vec![digibyte_genesis_tx()];
     let hash: sha256d::Hash = txdata[0].txid().into();
     let merkle_root = hash.into();
     match network {
-        Network::Bitcoin => {
+        Network::Digibyte => {
             Block {
                 header: BlockHeader {
                     version: 1,
@@ -164,12 +164,12 @@ mod test {
 
     use network::constants::Network;
     use consensus::encode::serialize;
-    use blockdata::constants::{genesis_block, bitcoin_genesis_tx};
+    use blockdata::constants::{genesis_block, digibyte_genesis_tx};
     use blockdata::constants::{MAX_SEQUENCE, COIN_VALUE};
 
     #[test]
-    fn bitcoin_genesis_first_transaction() {
-        let gen = bitcoin_genesis_tx();
+    fn digibyte_genesis_first_transaction() {
+        let gen = digibyte_genesis_tx();
 
         assert_eq!(gen.version, 1);
         assert_eq!(gen.input.len(), 1);
@@ -190,8 +190,8 @@ mod test {
     }
 
     #[test]
-    fn bitcoin_genesis_full_block() {
-        let gen = genesis_block(Network::Bitcoin);
+    fn digibyte_genesis_full_block() {
+        let gen = genesis_block(Network::Digibyte);
 
         assert_eq!(gen.header.version, 1);
         assert_eq!(gen.header.prev_blockhash, Default::default());

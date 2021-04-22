@@ -51,7 +51,7 @@ pub extern crate bech32;
 #[cfg(all(test, feature = "unstable"))] extern crate test;
 
 #[cfg(target_pointer_width = "16")]
-compile_error!("rust-bitcoin cannot be used on 16-bit architectures");
+compile_error!("rust-digibyte cannot be used on 16-bit architectures");
 
 #[cfg(test)]
 #[macro_use]

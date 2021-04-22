@@ -24,7 +24,7 @@ use std::fmt;
 
 use util;
 use util::Error::{BlockBadTarget, BlockBadProofOfWork};
-use util::hash::bitcoin_merkle_root;
+use util::hash::digibyte_merkle_root;
 use hashes::{Hash, HashEngine};
 use hash_types::{Wtxid, BlockHash, TxMerkleNode, WitnessMerkleNode, WitnessCommitment};
 use util::uint::Uint256;
@@ -207,7 +207,7 @@ impl Block {
     /// Calculate the transaction merkle root.
     pub fn merkle_root(&self) -> TxMerkleNode {
         let hashes = self.txdata.iter().map(|obj| obj.txid().as_hash());
-        bitcoin_merkle_root(hashes).into()
+        digibyte_merkle_root(hashes).into()
     }
 
     /// compute witness commitment for the transaction list
@@ -228,7 +228,7 @@ impl Block {
                 t.wtxid().as_hash()
             }
         );
-        bitcoin_merkle_root(hashes).into()
+        digibyte_merkle_root(hashes).into()
     }
 
     /// Get the size of the block
@@ -365,7 +365,7 @@ mod tests {
         assert_eq!(real_decode.header.nonce, 2067413810);
         assert_eq!(real_decode.header.work(), work);
         assert_eq!(real_decode.header.validate_pow(&real_decode.header.target()).unwrap(), real_decode.block_hash());
-        assert_eq!(real_decode.header.difficulty(Network::Bitcoin), 1);
+        assert_eq!(real_decode.header.difficulty(Network::Digibyte), 1);
         // [test] TODO: check the transaction data
 
         assert_eq!(real_decode.get_size(), some_block.len());

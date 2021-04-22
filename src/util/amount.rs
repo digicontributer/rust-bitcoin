@@ -25,11 +25,11 @@ use std::cmp::Ordering;
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Denomination {
     /// BTC
-    Bitcoin,
+    Digibyte,
     /// mBTC
-    MilliBitcoin,
+    MilliDigibyte,
     /// uBTC
-    MicroBitcoin,
+    MicroDigibyte,
     /// bits
     Bit,
     /// satoshi
@@ -42,9 +42,9 @@ impl Denomination {
     /// The number of decimal places more than a satoshi.
     fn precision(self) -> i32 {
         match self {
-            Denomination::Bitcoin => -8,
-            Denomination::MilliBitcoin => -5,
-            Denomination::MicroBitcoin => -2,
+            Denomination::Digibyte => -8,
+            Denomination::MilliDigibyte => -5,
+            Denomination::MicroDigibyte => -2,
             Denomination::Bit => -2,
             Denomination::Satoshi => 0,
             Denomination::MilliSatoshi => 3,
@@ -55,9 +55,9 @@ impl Denomination {
 impl fmt::Display for Denomination {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match *self {
-            Denomination::Bitcoin => "BTC",
-            Denomination::MilliBitcoin => "mBTC",
-            Denomination::MicroBitcoin => "uBTC",
+            Denomination::Digibyte => "BTC",
+            Denomination::MilliDigibyte => "mBTC",
+            Denomination::MicroDigibyte => "uBTC",
             Denomination::Bit => "bits",
             Denomination::Satoshi => "satoshi",
             Denomination::MilliSatoshi => "msat",
@@ -70,9 +70,9 @@ impl FromStr for Denomination {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "BTC" => Ok(Denomination::Bitcoin),
-            "mBTC" => Ok(Denomination::MilliBitcoin),
-            "uBTC" => Ok(Denomination::MicroBitcoin),
+            "BTC" => Ok(Denomination::Digibyte),
+            "mBTC" => Ok(Denomination::MilliDigibyte),
+            "uBTC" => Ok(Denomination::MicroDigibyte),
             "bits" => Ok(Denomination::Bit),
             "satoshi" => Ok(Denomination::Satoshi),
             "sat" => Ok(Denomination::Satoshi),
@@ -293,7 +293,7 @@ impl Amount {
 
     /// Convert from a value expressing bitcoins to an [Amount].
     pub fn from_btc(btc: f64) -> Result<Amount, ParseAmountError> {
-        Amount::from_float_in(btc, Denomination::Bitcoin)
+        Amount::from_float_in(btc, Denomination::Digibyte)
     }
 
     /// Parse a decimal string as a value in the given denomination.
@@ -339,7 +339,7 @@ impl Amount {
     ///
     /// Please be aware of the risk of using floating-point numbers.
     pub fn as_btc(self) -> f64 {
-        self.to_float_in(Denomination::Bitcoin)
+        self.to_float_in(Denomination::Digibyte)
     }
 
     /// Convert this [Amount] in floating-point notation with a given
@@ -441,8 +441,8 @@ impl fmt::Debug for Amount {
 // Just using Bitcoin denominated string.
 impl fmt::Display for Amount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt_value_in(f, Denomination::Bitcoin)?;
-        write!(f, " {}", Denomination::Bitcoin)
+        self.fmt_value_in(f, Denomination::Digibyte)?;
+        write!(f, " {}", Denomination::Digibyte)
     }
 }
 
@@ -571,7 +571,7 @@ impl SignedAmount {
 
     /// Convert from a value expressing bitcoins to an [SignedAmount].
     pub fn from_btc(btc: f64) -> Result<SignedAmount, ParseAmountError> {
-        SignedAmount::from_float_in(btc, Denomination::Bitcoin)
+        SignedAmount::from_float_in(btc, Denomination::Digibyte)
     }
 
     /// Parse a decimal string as a value in the given denomination.
@@ -617,7 +617,7 @@ impl SignedAmount {
     ///
     /// Please be aware of the risk of using floating-point numbers.
     pub fn as_btc(self) -> f64 {
-        self.to_float_in(Denomination::Bitcoin)
+        self.to_float_in(Denomination::Digibyte)
     }
 
     /// Convert this [SignedAmount] in floating-point notation with a given
@@ -766,8 +766,8 @@ impl fmt::Debug for SignedAmount {
 // Just using Bitcoin denominated string.
 impl fmt::Display for SignedAmount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt_value_in(f, Denomination::Bitcoin)?;
-        write!(f, " {}", Denomination::Bitcoin)
+        self.fmt_value_in(f, Denomination::Digibyte)?;
+        write!(f, " {}", Denomination::Digibyte)
     }
 }
 
@@ -907,7 +907,7 @@ pub mod serde {
             Ok(Amount::from_sat(u64::deserialize(d)?))
         }
         fn ser_btc<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
-            f64::serialize(&self.to_float_in(Denomination::Bitcoin), s)
+            f64::serialize(&self.to_float_in(Denomination::Digibyte), s)
         }
         fn des_btc<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
             use serde::de::Error;
@@ -935,7 +935,7 @@ pub mod serde {
             Ok(SignedAmount::from_sat(i64::deserialize(d)?))
         }
         fn ser_btc<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
-            f64::serialize(&self.to_float_in(Denomination::Bitcoin), s)
+            f64::serialize(&self.to_float_in(Denomination::Digibyte), s)
         }
         fn des_btc<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
             use serde::de::Error;
@@ -1159,19 +1159,19 @@ mod tests {
         let sat = Amount::from_sat;
         let ssat = SignedAmount::from_sat;
 
-        assert_eq!(f(11.22, D::Bitcoin), Ok(sat(1122000000)));
-        assert_eq!(sf(-11.22, D::MilliBitcoin), Ok(ssat(-1122000)));
+        assert_eq!(f(11.22, D::Digibyte), Ok(sat(1122000000)));
+        assert_eq!(sf(-11.22, D::MilliDigibyte), Ok(ssat(-1122000)));
         assert_eq!(f(11.22, D::Bit), Ok(sat(1122)));
         assert_eq!(sf(-1000.0, D::MilliSatoshi), Ok(ssat(-1)));
-        assert_eq!(f(0.0001234, D::Bitcoin), Ok(sat(12340)));
-        assert_eq!(sf(-0.00012345, D::Bitcoin), Ok(ssat(-12345)));
+        assert_eq!(f(0.0001234, D::Digibyte), Ok(sat(12340)));
+        assert_eq!(sf(-0.00012345, D::Digibyte), Ok(ssat(-12345)));
 
         assert_eq!(f(-100.0, D::MilliSatoshi), Err(ParseAmountError::Negative));
         assert_eq!(f(11.22, D::Satoshi), Err(ParseAmountError::TooPrecise));
         assert_eq!(sf(-100.0, D::MilliSatoshi), Err(ParseAmountError::TooPrecise));
         assert_eq!(sf(-100.0, D::MilliSatoshi), Err(ParseAmountError::TooPrecise));
-        assert_eq!(f(42.123456781, D::Bitcoin), Err(ParseAmountError::TooPrecise));
-        assert_eq!(sf(-184467440738.0, D::Bitcoin), Err(ParseAmountError::TooBig));
+        assert_eq!(f(42.123456781, D::Digibyte), Err(ParseAmountError::TooPrecise));
+        assert_eq!(sf(-184467440738.0, D::Digibyte), Err(ParseAmountError::TooBig));
         assert_eq!(f(18446744073709551617.0, D::Satoshi), Err(ParseAmountError::TooBig));
         assert_eq!(
             f(SignedAmount::max_value().to_float_in(D::Satoshi) + 1.0, D::Satoshi),
@@ -1183,19 +1183,19 @@ mod tests {
         );
 
         let btc = move |f| SignedAmount::from_btc(f).unwrap();
-        assert_eq!(btc(2.5).to_float_in(D::Bitcoin), 2.5);
-        assert_eq!(btc(-2.5).to_float_in(D::MilliBitcoin), -2500.0);
+        assert_eq!(btc(2.5).to_float_in(D::Digibyte), 2.5);
+        assert_eq!(btc(-2.5).to_float_in(D::MilliDigibyte), -2500.0);
         assert_eq!(btc(2.5).to_float_in(D::Satoshi), 250000000.0);
         assert_eq!(btc(-2.5).to_float_in(D::MilliSatoshi), -250000000000.0);
 
         let btc = move |f| Amount::from_btc(f).unwrap();
-        assert_eq!(&btc(0.0012).to_float_in(D::Bitcoin).to_string(), "0.0012")
+        assert_eq!(&btc(0.0012).to_float_in(D::Digibyte).to_string(), "0.0012")
     }
 
     #[test]
     fn parsing() {
         use super::ParseAmountError as E;
-        let btc = Denomination::Bitcoin;
+        let btc = Denomination::Digibyte;
         let sat = Denomination::Satoshi;
         let p = Amount::from_str_in;
         let sp = SignedAmount::from_str_in;
@@ -1230,29 +1230,29 @@ mod tests {
 
         assert_eq!(p("12.000", Denomination::MilliSatoshi), Err(E::TooPrecise));
         // exactly 50 chars.
-        assert_eq!(p("100000000000000.0000000000000000000000000000000000", Denomination::Bitcoin), Err(E::TooBig));
+        assert_eq!(p("100000000000000.0000000000000000000000000000000000", Denomination::Digibyte), Err(E::TooBig));
         // more than 50 chars.
-        assert_eq!(p("100000000000000.00000000000000000000000000000000000", Denomination::Bitcoin), Err(E::InputTooLarge));
+        assert_eq!(p("100000000000000.00000000000000000000000000000000000", Denomination::Digibyte), Err(E::InputTooLarge));
     }
 
     #[test]
     fn to_string() {
         use super::Denomination as D;
 
-        assert_eq!(Amount::ONE_BTC.to_string_in(D::Bitcoin), "1.00000000");
+        assert_eq!(Amount::ONE_BTC.to_string_in(D::Digibyte), "1.00000000");
         assert_eq!(Amount::ONE_BTC.to_string_in(D::Satoshi), "100000000");
-        assert_eq!(Amount::ONE_SAT.to_string_in(D::Bitcoin), "0.00000001");
-        assert_eq!(SignedAmount::from_sat(-42).to_string_in(D::Bitcoin), "-0.00000042");
+        assert_eq!(Amount::ONE_SAT.to_string_in(D::Digibyte), "0.00000001");
+        assert_eq!(SignedAmount::from_sat(-42).to_string_in(D::Digibyte), "-0.00000042");
 
-        assert_eq!(Amount::ONE_BTC.to_string_with_denomination(D::Bitcoin), "1.00000000 BTC");
+        assert_eq!(Amount::ONE_BTC.to_string_with_denomination(D::Digibyte), "1.00000000 BTC");
         assert_eq!(Amount::ONE_SAT.to_string_with_denomination(D::MilliSatoshi), "1000 msat");
         assert_eq!(
             SignedAmount::ONE_BTC.to_string_with_denomination(D::Satoshi),
             "100000000 satoshi"
         );
-        assert_eq!(Amount::ONE_SAT.to_string_with_denomination(D::Bitcoin), "0.00000001 BTC");
+        assert_eq!(Amount::ONE_SAT.to_string_with_denomination(D::Digibyte), "0.00000001 BTC");
         assert_eq!(
-            SignedAmount::from_sat(-42).to_string_with_denomination(D::Bitcoin),
+            SignedAmount::from_sat(-42).to_string_with_denomination(D::Digibyte),
             "-0.00000042 BTC"
         );
     }
@@ -1326,23 +1326,23 @@ mod tests {
 
         assert_eq!("0.50", Amount::from_sat(50).to_string_in(D::Bit));
         assert_eq!("-0.50", SignedAmount::from_sat(-50).to_string_in(D::Bit));
-        assert_eq!("0.00253583", Amount::from_sat(253583).to_string_in(D::Bitcoin));
+        assert_eq!("0.00253583", Amount::from_sat(253583).to_string_in(D::Digibyte));
         assert_eq!("-5", SignedAmount::from_sat(-5).to_string_in(D::Satoshi));
-        assert_eq!("0.10000000", Amount::from_sat(100_000_00).to_string_in(D::Bitcoin));
+        assert_eq!("0.10000000", Amount::from_sat(100_000_00).to_string_in(D::Digibyte));
         assert_eq!("-100.00", SignedAmount::from_sat(-10_000).to_string_in(D::Bit));
 
         assert_eq!(ua_str(&ua_sat(0).to_string_in(D::Satoshi), D::Satoshi), Ok(ua_sat(0)));
-        assert_eq!(ua_str(&ua_sat(500).to_string_in(D::Bitcoin), D::Bitcoin), Ok(ua_sat(500)));
+        assert_eq!(ua_str(&ua_sat(500).to_string_in(D::Digibyte), D::Digibyte), Ok(ua_sat(500)));
         assert_eq!(ua_str(&ua_sat(21_000_000).to_string_in(D::Bit), D::Bit), Ok(ua_sat(21_000_000)));
-        assert_eq!(ua_str(&ua_sat(1).to_string_in(D::MicroBitcoin), D::MicroBitcoin), Ok(ua_sat(1)));
-        assert_eq!(ua_str(&ua_sat(1_000_000_000_000).to_string_in(D::MilliBitcoin), D::MilliBitcoin), Ok(ua_sat(1_000_000_000_000)));
-        assert_eq!(ua_str(&ua_sat(u64::max_value()).to_string_in(D::MilliBitcoin), D::MilliBitcoin),  Err(ParseAmountError::TooBig));
+        assert_eq!(ua_str(&ua_sat(1).to_string_in(D::MicroDigibyte), D::MicroDigibyte), Ok(ua_sat(1)));
+        assert_eq!(ua_str(&ua_sat(1_000_000_000_000).to_string_in(D::MilliDigibyte), D::MilliDigibyte), Ok(ua_sat(1_000_000_000_000)));
+        assert_eq!(ua_str(&ua_sat(u64::max_value()).to_string_in(D::MilliDigibyte), D::MilliDigibyte),  Err(ParseAmountError::TooBig));
 
-        assert_eq!(sa_str(&sa_sat(-1).to_string_in(D::MicroBitcoin), D::MicroBitcoin), Ok(sa_sat(-1)));
+        assert_eq!(sa_str(&sa_sat(-1).to_string_in(D::MicroDigibyte), D::MicroDigibyte), Ok(sa_sat(-1)));
 
-        assert_eq!(sa_str(&sa_sat(i64::max_value()).to_string_in(D::Satoshi), D::MicroBitcoin), Err(ParseAmountError::TooBig));
+        assert_eq!(sa_str(&sa_sat(i64::max_value()).to_string_in(D::Satoshi), D::MicroDigibyte), Err(ParseAmountError::TooBig));
         // Test an overflow bug in `abs()`
-        assert_eq!(sa_str(&sa_sat(i64::min_value()).to_string_in(D::Satoshi), D::MicroBitcoin), Err(ParseAmountError::TooBig));
+        assert_eq!(sa_str(&sa_sat(i64::min_value()).to_string_in(D::Satoshi), D::MicroDigibyte), Err(ParseAmountError::TooBig));
 
     }
 
@@ -1351,9 +1351,9 @@ mod tests {
         use super::Denomination as D;
         let amt = Amount::from_sat(42);
         let denom = Amount::to_string_with_denomination;
-        assert_eq!(Amount::from_str(&denom(amt, D::Bitcoin)), Ok(amt));
-        assert_eq!(Amount::from_str(&denom(amt, D::MilliBitcoin)), Ok(amt));
-        assert_eq!(Amount::from_str(&denom(amt, D::MicroBitcoin)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::Digibyte)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::MilliDigibyte)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::MicroDigibyte)), Ok(amt));
         assert_eq!(Amount::from_str(&denom(amt, D::Bit)), Ok(amt));
         assert_eq!(Amount::from_str(&denom(amt, D::Satoshi)), Ok(amt));
         assert_eq!(Amount::from_str(&denom(amt, D::MilliSatoshi)), Ok(amt));

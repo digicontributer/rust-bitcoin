@@ -63,7 +63,7 @@ user_enum! {
     #[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Clone, Hash, Debug)]
     pub enum Network {
         /// Classic Bitcoin
-        Bitcoin <-> "bitcoin",
+        Digibyte <-> "digibyte",
         /// Bitcoin's testnet
         Testnet <-> "testnet",
         /// Bitcoin's signet
@@ -87,7 +87,7 @@ impl Network {
     pub fn from_magic(magic: u32) -> Option<Network> {
         // Note: any new entries here must be added to `magic` below
         match magic {
-            0xD9B4BEF9 => Some(Network::Bitcoin),
+            0xDAB6C3FA => Some(Network::Digibyte),
             0x0709110B => Some(Network::Testnet),
             0x40CF030A => Some(Network::Signet),
             0xDAB5BFFA => Some(Network::Regtest),
@@ -109,7 +109,7 @@ impl Network {
     pub fn magic(self) -> u32 {
         // Note: any new entries here must be added to `from_magic` above
         match self {
-            Network::Bitcoin => 0xD9B4BEF9,
+            Network::Digibyte => 0xDAB6C3FA,
             Network::Testnet => 0x0709110B,
             Network::Signet  => 0x40CF030A,
             Network::Regtest => 0xDAB5BFFA,
@@ -296,8 +296,8 @@ mod tests {
     #[test]
     fn serialize_test() {
         assert_eq!(
-            serialize(&Network::Bitcoin.magic()),
-            &[0xf9, 0xbe, 0xb4, 0xd9]
+            serialize(&Network::Digibyte.magic()),
+            &[0xfa, 0xc3, 0xb6, 0xda]
         );
         assert_eq!(
             serialize(&Network::Testnet.magic()),
@@ -313,8 +313,8 @@ mod tests {
         );
 
         assert_eq!(
-            deserialize(&[0xf9, 0xbe, 0xb4, 0xd9]).ok(),
-            Some(Network::Bitcoin.magic())
+            deserialize(&[0xfa, 0xc3, 0xb6, 0xda]).ok(),
+            Some(Network::Digibyte.magic())
         );
         assert_eq!(
             deserialize(&[0x0b, 0x11, 0x09, 0x07]).ok(),
@@ -332,12 +332,12 @@ mod tests {
 
     #[test]
     fn string_test() {
-        assert_eq!(Network::Bitcoin.to_string(), "bitcoin");
+        assert_eq!(Network::Digibyte.to_string(), "digibyte");
         assert_eq!(Network::Testnet.to_string(), "testnet");
         assert_eq!(Network::Regtest.to_string(), "regtest");
         assert_eq!(Network::Signet.to_string(), "signet");
 
-        assert_eq!("bitcoin".parse::<Network>().unwrap(), Network::Bitcoin);
+        assert_eq!("digibyte".parse::<Network>().unwrap(), Network::Digibyte);
         assert_eq!("testnet".parse::<Network>().unwrap(), Network::Testnet);
         assert_eq!("regtest".parse::<Network>().unwrap(), Network::Regtest);
         assert_eq!("signet".parse::<Network>().unwrap(), Network::Signet);

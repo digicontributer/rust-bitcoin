@@ -1,8 +1,8 @@
 
-extern crate bitcoin;
+extern crate digibyte;
 
-use bitcoin::blockdata::transaction::OutPoint;
-use bitcoin::consensus::encode;
+use digibyte::blockdata::transaction::OutPoint;
+use digibyte::consensus::encode;
 
 use std::str::FromStr;
 

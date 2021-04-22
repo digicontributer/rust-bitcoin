@@ -332,17 +332,17 @@ mod tests {
         let sk1 = PrivateKey {
             key: sk1,
             compressed: true,
-            network: Network::Bitcoin,
+            network: Network::Digibyte,
         };
         let sk2 = PrivateKey {
             key: sk2,
             compressed: false,
-            network: Network::Bitcoin,
+            network: Network::Digibyte,
         };
         let sk3 = PrivateKey {
             key: sk3,
             compressed: true,
-            network: Network::Bitcoin,
+            network: Network::Digibyte,
         };
         let pks = [
             PublicKey { key: pk1, compressed: true },

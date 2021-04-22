@@ -25,7 +25,7 @@ use consensus::{encode, Encodable};
 pub use self::message_signing::{MessageSignature, MessageSignatureError};
 
 /// The prefix for signed messages using Bitcoin's message signing protocol.
-pub const BITCOIN_SIGNED_MSG_PREFIX: &[u8] = b"\x18Bitcoin Signed Message:\n";
+pub const DIGIBYTE_SIGNED_MSG_PREFIX: &[u8] = b"\x19DigiByte Signed Message:\n";
 
 #[cfg(feature = "secp-recovery")]
 mod message_signing {
@@ -231,10 +231,10 @@ pub fn script_find_and_remove(haystack: &mut Vec<u8>, needle: &[u8]) -> usize {
     n_deleted
 }
 
-/// Hash message for signature using Bitcoin's message signing format.
+/// Hash message for signature using Digibyte's message signing format.
 pub fn signed_msg_hash(msg: &str) -> sha256d::Hash {
     let mut engine = sha256d::Hash::engine();
-    engine.input(BITCOIN_SIGNED_MSG_PREFIX);
+    engine.input(DIGIBYTE_SIGNED_MSG_PREFIX);
     let msg_len = encode::VarInt(msg.len() as u64);
     msg_len.consensus_encode(&mut engine).unwrap();
     engine.input(msg.as_bytes());
@@ -299,7 +299,7 @@ mod tests {
         use secp256k1;
 
         let secp = secp256k1::Secp256k1::new();
-        let message = "rust-bitcoin MessageSignature test";
+        let message = "rust-digibyte MessageSignature test";
         let msg_hash = super::signed_msg_hash(&message);
         let msg = secp256k1::Message::from_slice(&msg_hash).unwrap();
 
@@ -316,11 +316,11 @@ mod tests {
         assert_eq!(pubkey.compressed, true);
         assert_eq!(pubkey.key, secp256k1::PublicKey::from_secret_key(&secp, &privkey));
 
-        let p2pkh = ::Address::p2pkh(&pubkey, ::Network::Bitcoin);
+        let p2pkh = ::Address::p2pkh(&pubkey, ::Network::Digibyte);
         assert_eq!(signature2.is_signed_by_address(&secp, &p2pkh, msg_hash), Ok(true));
-        let p2wpkh = ::Address::p2wpkh(&pubkey, ::Network::Bitcoin).unwrap();
+        let p2wpkh = ::Address::p2wpkh(&pubkey, ::Network::Digibyte).unwrap();
         assert_eq!(signature2.is_signed_by_address(&secp, &p2wpkh, msg_hash), Ok(false));
-        let p2shwpkh = ::Address::p2shwpkh(&pubkey, ::Network::Bitcoin).unwrap();
+        let p2shwpkh = ::Address::p2shwpkh(&pubkey, ::Network::Digibyte).unwrap();
         assert_eq!(signature2.is_signed_by_address(&secp, &p2shwpkh, msg_hash), Ok(false));
     }
 }

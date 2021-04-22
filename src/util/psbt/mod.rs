@@ -219,7 +219,7 @@ mod tests {
 
     use blockdata::script::Script;
     use blockdata::transaction::{Transaction, TxIn, TxOut, OutPoint};
-    use network::constants::Network::Bitcoin;
+    use network::constants::Network::Digibyte;
     use consensus::encode::{deserialize, serialize, serialize_hex};
     use util::bip32::{ChildNumber, ExtendedPrivKey, ExtendedPubKey, Fingerprint, KeySource};
     use util::key::PublicKey;
@@ -260,7 +260,7 @@ mod tests {
 
         let mut hd_keypaths: BTreeMap<PublicKey, KeySource> = Default::default();
 
-        let mut sk: ExtendedPrivKey = ExtendedPrivKey::new_master(Bitcoin, &seed).unwrap();
+        let mut sk: ExtendedPrivKey = ExtendedPrivKey::new_master(Digibyte, &seed).unwrap();
 
         let fprint: Fingerprint = sk.fingerprint(&secp);
 

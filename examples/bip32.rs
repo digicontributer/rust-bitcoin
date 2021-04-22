@@ -1,15 +1,15 @@
-extern crate bitcoin;
+extern crate digibyte;
 
 use std::{env, process};
 use std::str::FromStr;
 
-use bitcoin::secp256k1::Secp256k1;
-use bitcoin::util::key::PrivateKey;
-use bitcoin::util::bip32::ExtendedPrivKey;
-use bitcoin::util::bip32::ExtendedPubKey;
-use bitcoin::util::bip32::DerivationPath;
-use bitcoin::util::bip32::ChildNumber;
-use bitcoin::util::address::Address;
+use digibyte::secp256k1::Secp256k1;
+use digibyte::util::key::PrivateKey;
+use digibyte::util::bip32::ExtendedPrivKey;
+use digibyte::util::bip32::ExtendedPubKey;
+use digibyte::util::bip32::DerivationPath;
+use digibyte::util::bip32::ChildNumber;
+use digibyte::util::address::Address;
 
 fn main() {
     // This example derives root xprv

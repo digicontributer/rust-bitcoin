@@ -214,7 +214,7 @@ pub struct Address {
     /// The network on which this address is usable
     pub network: Network,
 }
-serde_string_impl!(Address, "a Bitcoin address");
+serde_string_impl!(Address, "a Digibyte address");
 
 impl Address {
     /// Creates a pay to (compressed) public key hash address from a public key
@@ -360,7 +360,7 @@ impl Display for Address {
             Payload::PubkeyHash(ref hash) => {
                 let mut prefixed = [0; 21];
                 prefixed[0] = match self.network {
-                    Network::Bitcoin => 0,
+                    Network::Digibyte => 0,
                     Network::Testnet | Network::Signet | Network::Regtest => 111,
                 };
                 prefixed[1..].copy_from_slice(&hash[..]);
@@ -369,7 +369,7 @@ impl Display for Address {
             Payload::ScriptHash(ref hash) => {
                 let mut prefixed = [0; 21];
                 prefixed[0] = match self.network {
-                    Network::Bitcoin => 5,
+                    Network::Digibyte => 5,
                     Network::Testnet | Network::Signet | Network::Regtest => 196,
                 };
                 prefixed[1..].copy_from_slice(&hash[..]);
@@ -380,7 +380,7 @@ impl Display for Address {
                 program: ref prog,
             } => {
                 let hrp = match self.network {
-                    Network::Bitcoin => "bc",
+                    Network::Digibyte => "dgb",
                     Network::Testnet | Network::Signet  => "tb",
                     Network::Regtest => "bcrt",
                 };
@@ -409,7 +409,7 @@ impl FromStr for Address {
         // try bech32
         let bech32_network = match find_bech32_prefix(s) {
             // note that upper or lowercase is allowed but NOT mixed case
-            "bc" | "BC" => Some(Network::Bitcoin),
+            "dgb" | "DGB" => Some(Network::Digibyte),
             "tb" | "TB" => Some(Network::Testnet), // this may also be signet
             "bcrt" | "BCRT" => Some(Network::Regtest),
             _ => None,
@@ -460,11 +460,11 @@ impl FromStr for Address {
 
         let (network, payload) = match data[0] {
             0 => (
-                Network::Bitcoin,
+                Network::Digibyte,
                 Payload::PubkeyHash(PubkeyHash::from_slice(&data[1..]).unwrap()),
             ),
             5 => (
-                Network::Bitcoin,
+                Network::Digibyte,
                 Payload::ScriptHash(ScriptHash::from_slice(&data[1..]).unwrap()),
             ),
             111 => (
@@ -499,7 +499,7 @@ mod tests {
     use hashes::hex::{FromHex, ToHex};
 
     use blockdata::script::Script;
-    use network::constants::Network::{Bitcoin, Testnet};
+    use network::constants::Network::{Digibyte, Testnet};
     use util::key::PublicKey;
 
     use super::*;
@@ -529,7 +529,7 @@ mod tests {
     #[test]
     fn test_p2pkh_address_58() {
         let addr = Address {
-            network: Bitcoin,
+            network: Digibyte,
             payload: Payload::PubkeyHash(hex_pubkeyhash!("162c5ea71c0b23f5b9022ef047c4a86470a5b070")),
         };
 
@@ -545,7 +545,7 @@ mod tests {
     #[test]
     fn test_p2pkh_from_key() {
         let key = hex_key!("048d5141948c1702e8c95f438815794b87f706a8d4cd2bffad1dc1570971032c9b6042a0431ded2478b5c9cf2d81c124a5e57347a3c63ef0e7716cf54d613ba183");
-        let addr = Address::p2pkh(&key, Bitcoin);
+        let addr = Address::p2pkh(&key, Digibyte);
         assert_eq!(&addr.to_string(), "1QJVDzdqb1VpbDK7uDeyVXy9mR27CJiyhY");
 
         let key = hex_key!(&"03df154ebfcf29d29cc10d5c2565018bce2d9edbab267c31d2caf44a63056cf99f");
@@ -558,7 +558,7 @@ mod tests {
     #[test]
     fn test_p2sh_address_58() {
         let addr = Address {
-            network: Bitcoin,
+            network: Digibyte,
             payload: Payload::ScriptHash(hex_scripthash!("162c5ea71c0b23f5b9022ef047c4a86470a5b070")),
         };
 
@@ -585,21 +585,21 @@ mod tests {
     fn test_p2wpkh() {
         // stolen from Bitcoin transaction: b3c8c2b6cfc335abbcb2c7823a8453f55d64b2b5125a9a61e8737230cdb8ce20
         let mut key = hex_key!("033bc8c83c52df5712229a2f72206d90192366c36428cb0c12b6af98324d97bfbc");
-        let addr = Address::p2wpkh(&key, Bitcoin).unwrap();
+        let addr = Address::p2wpkh(&key, Digibyte).unwrap();
         assert_eq!(&addr.to_string(), "bc1qvzvkjn4q3nszqxrv3nraga2r822xjty3ykvkuw");
         assert_eq!(addr.address_type(), Some(AddressType::P2wpkh));
         roundtrips(&addr);
 
         // Test uncompressed pubkey
         key.compressed = false;
-        assert_eq!(Address::p2wpkh(&key, Bitcoin), Err(Error::UncompressedPubkey));
+        assert_eq!(Address::p2wpkh(&key, Digibyte), Err(Error::UncompressedPubkey));
     }
 
     #[test]
     fn test_p2wsh() {
         // stolen from Bitcoin transaction 5df912fda4becb1c29e928bec8d64d93e9ba8efa9b5b405bd683c86fd2c65667
         let script = hex_script!("52210375e00eb72e29da82b89367947f29ef34afb75e8654f6ea368e0acdfd92976b7c2103a1b26313f430c4b15bb1fdce663207659d8cac749a0e53d70eff01874496feff2103c96d495bfdd5ba4145e3e046fee45e84a8a48ad05bd8dbb395c011a32cf9f88053ae");
-        let addr = Address::p2wsh(&script, Bitcoin);
+        let addr = Address::p2wsh(&script, Digibyte);
         assert_eq!(
             &addr.to_string(),
             "bc1qwqdg6squsna38e46795at95yu9atm8azzmyvckulcc7kytlcckxswvvzej"
@@ -612,21 +612,21 @@ mod tests {
     fn test_p2shwpkh() {
         // stolen from Bitcoin transaction: ad3fd9c6b52e752ba21425435ff3dd361d6ac271531fc1d2144843a9f550ad01
         let mut key = hex_key!("026c468be64d22761c30cd2f12cbc7de255d592d7904b1bab07236897cc4c2e766");
-        let addr = Address::p2shwpkh(&key, Bitcoin).unwrap();
+        let addr = Address::p2shwpkh(&key, Digibyte).unwrap();
         assert_eq!(&addr.to_string(), "3QBRmWNqqBGme9er7fMkGqtZtp4gjMFxhE");
         assert_eq!(addr.address_type(), Some(AddressType::P2sh));
         roundtrips(&addr);
 
         // Test uncompressed pubkey
         key.compressed = false;
-        assert_eq!(Address::p2wpkh(&key, Bitcoin), Err(Error::UncompressedPubkey));
+        assert_eq!(Address::p2wpkh(&key, Digibyte), Err(Error::UncompressedPubkey));
     }
 
     #[test]
     fn test_p2shwsh() {
         // stolen from Bitcoin transaction f9ee2be4df05041d0e0a35d7caa3157495ca4f93b233234c9967b6901dacf7a9
         let script = hex_script!("522103e5529d8eaa3d559903adb2e881eb06c86ac2574ffa503c45f4e942e2a693b33e2102e5f10fcdcdbab211e0af6a481f5532536ec61a5fdbf7183770cf8680fe729d8152ae");
-        let addr = Address::p2shwsh(&script, Bitcoin);
+        let addr = Address::p2shwsh(&script, Digibyte);
         assert_eq!(&addr.to_string(), "36EqgNnsWW94SreZgBWc1ANC6wpFZwirHr");
         assert_eq!(addr.address_type(), Some(AddressType::P2sh));
         roundtrips(&addr);
@@ -644,7 +644,7 @@ mod tests {
                 version: bech32::u5::try_from_u8(version).expect("0<32"),
                 program: program,
             },
-            network: Network::Bitcoin,
+            network: Network::Digibyte,
         };
         roundtrips(&addr);
     }
