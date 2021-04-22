@@ -55,9 +55,9 @@ impl Denomination {
 impl fmt::Display for Denomination {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match *self {
-            Denomination::Digibyte => "BTC",
-            Denomination::MilliDigibyte => "mBTC",
-            Denomination::MicroDigibyte => "uBTC",
+            Denomination::Digibyte => "DGB",
+            Denomination::MilliDigibyte => "mDGB",
+            Denomination::MicroDigibyte => "uDGB",
             Denomination::Bit => "bits",
             Denomination::Satoshi => "satoshi",
             Denomination::MilliSatoshi => "msat",
@@ -70,9 +70,9 @@ impl FromStr for Denomination {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "BTC" => Ok(Denomination::Digibyte),
-            "mBTC" => Ok(Denomination::MilliDigibyte),
-            "uBTC" => Ok(Denomination::MicroDigibyte),
+            "DGB" => Ok(Denomination::Digibyte),
+            "mDGB" => Ok(Denomination::MilliDigibyte),
+            "uDGB" => Ok(Denomination::MicroDigibyte),
             "bits" => Ok(Denomination::Bit),
             "satoshi" => Ok(Denomination::Satoshi),
             "sat" => Ok(Denomination::Satoshi),
@@ -269,7 +269,7 @@ impl Amount {
     /// Exactly one satoshi.
     pub const ONE_SAT: Amount = Amount(1);
     /// Exactly one bitcoin.
-    pub const ONE_BTC: Amount = Amount(100_000_000);
+    pub const ONE_DGB: Amount = Amount(100_000_000);
 
     /// Create an [Amount] with satoshi precision and the given number of satoshis.
     pub fn from_sat(satoshi: u64) -> Amount {
@@ -292,8 +292,8 @@ impl Amount {
     }
 
     /// Convert from a value expressing bitcoins to an [Amount].
-    pub fn from_btc(btc: f64) -> Result<Amount, ParseAmountError> {
-        Amount::from_float_in(btc, Denomination::Digibyte)
+    pub fn from_dgb(dgb: f64) -> Result<Amount, ParseAmountError> {
+        Amount::from_float_in(dgb, Denomination::Digibyte)
     }
 
     /// Parse a decimal string as a value in the given denomination.
@@ -338,7 +338,7 @@ impl Amount {
     /// Equivalent to `to_float_in(Denomination::Bitcoin)`.
     ///
     /// Please be aware of the risk of using floating-point numbers.
-    pub fn as_btc(self) -> f64 {
+    pub fn as_dgb(self) -> f64 {
         self.to_float_in(Denomination::Digibyte)
     }
 
@@ -433,7 +433,7 @@ impl default::Default for Amount {
 
 impl fmt::Debug for Amount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Amount({:.8} BTC)", self.as_btc())
+        write!(f, "Amount({:.8} DGB)", self.as_dgb())
     }
 }
 
@@ -547,7 +547,7 @@ impl SignedAmount {
     /// Exactly one satoshi.
     pub const ONE_SAT: SignedAmount = SignedAmount(1);
     /// Exactly one bitcoin.
-    pub const ONE_BTC: SignedAmount = SignedAmount(100_000_000);
+    pub const ONE_DGB: SignedAmount = SignedAmount(100_000_000);
 
     /// Create an [SignedAmount] with satoshi precision and the given number of satoshis.
     pub fn from_sat(satoshi: i64) -> SignedAmount {
@@ -570,8 +570,8 @@ impl SignedAmount {
     }
 
     /// Convert from a value expressing bitcoins to an [SignedAmount].
-    pub fn from_btc(btc: f64) -> Result<SignedAmount, ParseAmountError> {
-        SignedAmount::from_float_in(btc, Denomination::Digibyte)
+    pub fn from_dgb(dgb: f64) -> Result<SignedAmount, ParseAmountError> {
+        SignedAmount::from_float_in(dgb, Denomination::Digibyte)
     }
 
     /// Parse a decimal string as a value in the given denomination.
@@ -616,7 +616,7 @@ impl SignedAmount {
     /// Equivalent to `to_float_in(Denomination::Bitcoin)`.
     ///
     /// Please be aware of the risk of using floating-point numbers.
-    pub fn as_btc(self) -> f64 {
+    pub fn as_dgb(self) -> f64 {
         self.to_float_in(Denomination::Digibyte)
     }
 
@@ -758,7 +758,7 @@ impl default::Default for SignedAmount {
 
 impl fmt::Debug for SignedAmount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "SignedAmount({:.8} BTC)", self.as_btc())
+        write!(f, "SignedAmount({:.8} DGB)", self.as_dgb())
     }
 }
 
@@ -880,8 +880,8 @@ pub mod serde {
     pub trait SerdeAmount: Copy + Sized {
         fn ser_sat<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error>;
         fn des_sat<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error>;
-        fn ser_btc<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error>;
-        fn des_btc<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error>;
+        fn ser_dgb<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error>;
+        fn des_dgb<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error>;
     }
 
     mod private {
@@ -896,7 +896,7 @@ pub mod serde {
     pub trait SerdeAmountForOpt: Copy + Sized + SerdeAmount + private::Sealed {
         fn type_prefix() -> &'static str;
         fn ser_sat_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error>;
-        fn ser_btc_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error>;
+        fn ser_dgb_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error>;
     }
 
     impl SerdeAmount for Amount {
@@ -906,12 +906,12 @@ pub mod serde {
         fn des_sat<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
             Ok(Amount::from_sat(u64::deserialize(d)?))
         }
-        fn ser_btc<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
+        fn ser_dgb<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
             f64::serialize(&self.to_float_in(Denomination::Digibyte), s)
         }
-        fn des_btc<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
+        fn des_dgb<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
             use serde::de::Error;
-            Ok(Amount::from_btc(f64::deserialize(d)?).map_err(D::Error::custom)?)
+            Ok(Amount::from_dgb(f64::deserialize(d)?).map_err(D::Error::custom)?)
         }
     }
 
@@ -922,8 +922,8 @@ pub mod serde {
         fn ser_sat_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
             s.serialize_some(&self.as_sat())
         }
-        fn ser_btc_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
-            s.serialize_some(&self.as_btc())
+        fn ser_dgb_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
+            s.serialize_some(&self.as_dgb())
         }
     }
 
@@ -934,12 +934,12 @@ pub mod serde {
         fn des_sat<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
             Ok(SignedAmount::from_sat(i64::deserialize(d)?))
         }
-        fn ser_btc<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
+        fn ser_dgb<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
             f64::serialize(&self.to_float_in(Denomination::Digibyte), s)
         }
-        fn des_btc<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
+        fn des_dgb<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
             use serde::de::Error;
-            Ok(SignedAmount::from_btc(f64::deserialize(d)?).map_err(D::Error::custom)?)
+            Ok(SignedAmount::from_dgb(f64::deserialize(d)?).map_err(D::Error::custom)?)
         }
     }
 
@@ -950,8 +950,8 @@ pub mod serde {
         fn ser_sat_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
             s.serialize_some(&self.as_sat())
         }
-        fn ser_btc_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
-            s.serialize_some(&self.as_btc())
+        fn ser_dgb_opt<S: Serializer>(self, s: S) -> Result<S::Ok, S::Error> {
+            s.serialize_some(&self.as_dgb())
         }
     }
 
@@ -1018,7 +1018,7 @@ pub mod serde {
         }
     }
 
-    pub mod as_btc {
+    pub mod as_dgb {
         //! Serialize and deserialize [Amount] as JSON numbers denominated in BTC.
         //! Use with `#[serde(with = "amount::serde::as_btc")]`.
 
@@ -1026,11 +1026,11 @@ pub mod serde {
         use util::amount::serde::SerdeAmount;
 
         pub fn serialize<A: SerdeAmount, S: Serializer>(a: &A, s: S) -> Result<S::Ok, S::Error> {
-            a.ser_btc(s)
+            a.ser_dgb(s)
         }
 
         pub fn deserialize<'d, A: SerdeAmount, D: Deserializer<'d>>(d: D) -> Result<A, D::Error> {
-            A::des_btc(d)
+            A::des_dgb(d)
         }
 
         pub mod opt {
@@ -1047,7 +1047,7 @@ pub mod serde {
                 s: S,
             ) -> Result<S::Ok, S::Error> {
                 match *a {
-                    Some(a) => a.ser_btc_opt(s),
+                    Some(a) => a.ser_dgb_opt(s),
                     None => s.serialize_none(),
                 }
             }
@@ -1073,7 +1073,7 @@ pub mod serde {
                     where
                         D: Deserializer<'de>,
                     {
-                        Ok(Some(X::des_btc(d)?))
+                        Ok(Some(X::des_dgb(d)?))
                     }
                 }
                 d.deserialize_option(VisitOptAmt::<A>(PhantomData))
@@ -1182,44 +1182,44 @@ mod tests {
             Err(ParseAmountError::TooBig)
         );
 
-        let btc = move |f| SignedAmount::from_btc(f).unwrap();
-        assert_eq!(btc(2.5).to_float_in(D::Digibyte), 2.5);
-        assert_eq!(btc(-2.5).to_float_in(D::MilliDigibyte), -2500.0);
-        assert_eq!(btc(2.5).to_float_in(D::Satoshi), 250000000.0);
-        assert_eq!(btc(-2.5).to_float_in(D::MilliSatoshi), -250000000000.0);
+        let dgb = move |f| SignedAmount::from_dgb (f).unwrap();
+        assert_eq!(dgb(2.5).to_float_in(D::Digibyte), 2.5);
+        assert_eq!(dgb(-2.5).to_float_in(D::MilliDigibyte), -2500.0);
+        assert_eq!(dgb(2.5).to_float_in(D::Satoshi), 250000000.0);
+        assert_eq!(dgb(-2.5).to_float_in(D::MilliSatoshi), -250000000000.0);
 
-        let btc = move |f| Amount::from_btc(f).unwrap();
-        assert_eq!(&btc(0.0012).to_float_in(D::Digibyte).to_string(), "0.0012")
+        let dgb = move |f| Amount::from_dgb(f).unwrap();
+        assert_eq!(&dgb(0.0012).to_float_in(D::Digibyte).to_string(), "0.0012")
     }
 
     #[test]
     fn parsing() {
         use super::ParseAmountError as E;
-        let btc = Denomination::Digibyte;
+        let dgb = Denomination::Digibyte;
         let sat = Denomination::Satoshi;
         let p = Amount::from_str_in;
         let sp = SignedAmount::from_str_in;
 
-        assert_eq!(p("x", btc), Err(E::InvalidCharacter('x')));
-        assert_eq!(p("-", btc), Err(E::InvalidFormat));
-        assert_eq!(sp("-", btc), Err(E::InvalidFormat));
-        assert_eq!(p("-1.0x", btc), Err(E::InvalidCharacter('x')));
-        assert_eq!(p("0.0 ", btc), Err(ParseAmountError::InvalidCharacter(' ')));
-        assert_eq!(p("0.000.000", btc), Err(E::InvalidFormat));
+        assert_eq!(p("x", dgb), Err(E::InvalidCharacter('x')));
+        assert_eq!(p("-", dgb), Err(E::InvalidFormat));
+        assert_eq!(sp("-", dgb), Err(E::InvalidFormat));
+        assert_eq!(p("-1.0x", dgb), Err(E::InvalidCharacter('x')));
+        assert_eq!(p("0.0 ", dgb), Err(ParseAmountError::InvalidCharacter(' ')));
+        assert_eq!(p("0.000.000", dgb), Err(E::InvalidFormat));
         let more_than_max = format!("1{}", Amount::max_value());
-        assert_eq!(p(&more_than_max, btc), Err(E::TooBig));
-        assert_eq!(p("0.000000042", btc), Err(E::TooPrecise));
+        assert_eq!(p(&more_than_max, dgb), Err(E::TooBig));
+        assert_eq!(p("0.000000042", dgb), Err(E::TooPrecise));
 
-        assert_eq!(p("1", btc), Ok(Amount::from_sat(1_000_000_00)));
-        assert_eq!(sp("-.5", btc), Ok(SignedAmount::from_sat(-500_000_00)));
-        assert_eq!(p("1.1", btc), Ok(Amount::from_sat(1_100_000_00)));
+        assert_eq!(p("1", dgb), Ok(Amount::from_sat(1_000_000_00)));
+        assert_eq!(sp("-.5", dgb), Ok(SignedAmount::from_sat(-500_000_00)));
+        assert_eq!(p("1.1", dgb), Ok(Amount::from_sat(1_100_000_00)));
         assert_eq!(p("100", sat), Ok(Amount::from_sat(100)));
         assert_eq!(p("55", sat), Ok(Amount::from_sat(55)));
         assert_eq!(p("5500000000000000000", sat), Ok(Amount::from_sat(5_500_000_000_000_000_000)));
         // Should this even pass?
         assert_eq!(p("5500000000000000000.", sat), Ok(Amount::from_sat(5_500_000_000_000_000_000)));
         assert_eq!(
-            p("12345678901.12345678", btc),
+            p("12345678901.12345678", dgb),
             Ok(Amount::from_sat(12_345_678_901__123_456_78))
         );
 
@@ -1239,21 +1239,21 @@ mod tests {
     fn to_string() {
         use super::Denomination as D;
 
-        assert_eq!(Amount::ONE_BTC.to_string_in(D::Digibyte), "1.00000000");
-        assert_eq!(Amount::ONE_BTC.to_string_in(D::Satoshi), "100000000");
+        assert_eq!(Amount::ONE_DGB.to_string_in(D::Digibyte), "1.00000000");
+        assert_eq!(Amount::ONE_DGB.to_string_in(D::Satoshi), "100000000");
         assert_eq!(Amount::ONE_SAT.to_string_in(D::Digibyte), "0.00000001");
         assert_eq!(SignedAmount::from_sat(-42).to_string_in(D::Digibyte), "-0.00000042");
 
-        assert_eq!(Amount::ONE_BTC.to_string_with_denomination(D::Digibyte), "1.00000000 BTC");
+        assert_eq!(Amount::ONE_DGB.to_string_with_denomination(D::Digibyte), "1.00000000 DGB");
         assert_eq!(Amount::ONE_SAT.to_string_with_denomination(D::MilliSatoshi), "1000 msat");
         assert_eq!(
-            SignedAmount::ONE_BTC.to_string_with_denomination(D::Satoshi),
+            SignedAmount::ONE_DGB.to_string_with_denomination(D::Satoshi),
             "100000000 satoshi"
         );
-        assert_eq!(Amount::ONE_SAT.to_string_with_denomination(D::Digibyte), "0.00000001 BTC");
+        assert_eq!(Amount::ONE_SAT.to_string_with_denomination(D::Digibyte), "0.00000001 DGB");
         assert_eq!(
             SignedAmount::from_sat(-42).to_string_with_denomination(D::Digibyte),
-            "-0.00000042 BTC"
+            "-0.00000042 DGB"
         );
     }
 
@@ -1284,19 +1284,19 @@ mod tests {
         let p = Amount::from_str;
         let sp = SignedAmount::from_str;
 
-        assert_eq!(p("x BTC"), Err(E::InvalidCharacter('x')));
-        assert_eq!(p("5 BTC BTC"), Err(E::InvalidFormat));
-        assert_eq!(p("5 5 BTC"), Err(E::InvalidFormat));
+        assert_eq!(p("x DGB"), Err(E::InvalidCharacter('x')));
+        assert_eq!(p("5 DGB DGB"), Err(E::InvalidFormat));
+        assert_eq!(p("5 5 DGB"), Err(E::InvalidFormat));
 
         assert_eq!(p("5 BCH"), Err(E::UnknownDenomination("BCH".to_owned())));
 
-        assert_eq!(p("-1 BTC"), Err(E::Negative));
-        assert_eq!(p("-0.0 BTC"), Err(E::Negative));
-        assert_eq!(p("0.123456789 BTC"), Err(E::TooPrecise));
+        assert_eq!(p("-1 DGB"), Err(E::Negative));
+        assert_eq!(p("-0.0 DGB"), Err(E::Negative));
+        assert_eq!(p("0.123456789 DGB"), Err(E::TooPrecise));
         assert_eq!(sp("-0.1 satoshi"), Err(E::TooPrecise));
-        assert_eq!(p("0.123456 mBTC"), Err(E::TooPrecise));
+        assert_eq!(p("0.123456 mDGB"), Err(E::TooPrecise));
         assert_eq!(sp("-1.001 bits"), Err(E::TooPrecise));
-        assert_eq!(sp("-200000000000 BTC"), Err(E::TooBig));
+        assert_eq!(sp("-200000000000 DGB"), Err(E::TooBig));
         assert_eq!(p("18446744073709551616 sat"), Err(E::TooBig));
 
         assert_eq!(sp("0 msat"), Err(E::TooPrecise));
@@ -1310,9 +1310,9 @@ mod tests {
 
         assert_eq!(p(".5 bits"), Ok(Amount::from_sat(50)));
         assert_eq!(sp("-.5 bits"), Ok(SignedAmount::from_sat(-50)));
-        assert_eq!(p("0.00253583 BTC"), Ok(Amount::from_sat(253583)));
+        assert_eq!(p("0.00253583 DGB"), Ok(Amount::from_sat(253583)));
         assert_eq!(sp("-5 satoshi"), Ok(SignedAmount::from_sat(-5)));
-        assert_eq!(p("0.10000000 BTC"), Ok(Amount::from_sat(100_000_00)));
+        assert_eq!(p("0.10000000 DGB"), Ok(Amount::from_sat(100_000_00)));
         assert_eq!(sp("-100 bits"), Ok(SignedAmount::from_sat(-10_000)));
     }
 
@@ -1358,8 +1358,8 @@ mod tests {
         assert_eq!(Amount::from_str(&denom(amt, D::Satoshi)), Ok(amt));
         assert_eq!(Amount::from_str(&denom(amt, D::MilliSatoshi)), Ok(amt));
 
-        assert_eq!(Amount::from_str("42 satoshi BTC"), Err(ParseAmountError::InvalidFormat));
-        assert_eq!(SignedAmount::from_str("-42 satoshi BTC"), Err(ParseAmountError::InvalidFormat));
+        assert_eq!(Amount::from_str("42 satoshi DGB"), Err(ParseAmountError::InvalidFormat));
+        assert_eq!(SignedAmount::from_str("-42 satoshi DGB"), Err(ParseAmountError::InvalidFormat));
     }
 
     #[cfg(feature = "serde")]
@@ -1395,14 +1395,14 @@ mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
-    fn serde_as_btc() {
+    fn serde_as_dgb() {
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
         struct T {
-            #[serde(with = "::util::amount::serde::as_btc")]
+            #[serde(with = "::util::amount::serde::as_dgb")]
             pub amt: Amount,
-            #[serde(with = "::util::amount::serde::as_btc")]
+            #[serde(with = "::util::amount::serde::as_dgb")]
             pub samt: SignedAmount,
         }
 
@@ -1429,14 +1429,14 @@ mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
-    fn serde_as_btc_opt() {
+    fn serde_as_dgb_opt() {
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
         struct T {
-            #[serde(default, with = "::util::amount::serde::as_btc::opt")]
+            #[serde(default, with = "::util::amount::serde::as_dgb::opt")]
             pub amt: Option<Amount>,
-            #[serde(default, with = "::util::amount::serde::as_btc::opt")]
+            #[serde(default, with = "::util::amount::serde::as_dgb::opt")]
             pub samt: Option<SignedAmount>,
         }
 
