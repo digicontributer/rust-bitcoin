@@ -407,6 +407,7 @@ impl FromStr for Address {
 
     fn from_str(s: &str) -> Result<Address, Error> {
         // try bech32
+        let mut tried_bech32 = false;
         let bech32_network = match find_bech32_prefix(s) {
             // note that upper or lowercase is allowed but NOT mixed case
             "dgb" | "DGB" => Some(Network::Digibyte),
@@ -418,43 +419,51 @@ impl FromStr for Address {
             // decode as bech32
             let (_, payload) = bech32::decode(s)?;
             if payload.is_empty() {
-                return Err(Error::EmptyBech32Payload);
+                tried_bech32 = true;
             }
 
-            // Get the script version and program (converted from 5-bit to 8-bit)
-            let (version, program): (bech32::u5, Vec<u8>) = {
-                let (v, p5) = payload.split_at(1);
-                (v[0], bech32::FromBase32::from_base32(p5)?)
-            };
+            if tried_bech32 == false {
+                // Get the script version and program (converted from 5-bit to 8-bit)
+                let (version, program): (bech32::u5, Vec<u8>) = {
+                    let (v, p5) = payload.split_at(1);
+                    (v[0], bech32::FromBase32::from_base32(p5)?)
+                };
 
-            // Generic segwit checks.
-            if version.to_u8() > 16 {
-                return Err(Error::InvalidWitnessVersion(version.to_u8()));
-            }
-            if program.len() < 2 || program.len() > 40 {
-                return Err(Error::InvalidWitnessProgramLength(program.len()));
-            }
+                // Generic segwit checks.
+                if version.to_u8() > 16 {
+                    return Err(Error::InvalidWitnessVersion(version.to_u8()));
+                }
+                if program.len() < 2 || program.len() > 40 {
+                    return Err(Error::InvalidWitnessProgramLength(program.len()));
+                }
 
-            // Specific segwit v0 check.
-            if version.to_u8() == 0 && (program.len() != 20 && program.len() != 32) {
-                return Err(Error::InvalidSegwitV0ProgramLength(program.len()));
-            }
+                // Specific segwit v0 check.
+                if version.to_u8() == 0 && (program.len() != 20 && program.len() != 32) {
+                    return Err(Error::InvalidSegwitV0ProgramLength(program.len()));
+                }
 
-            return Ok(Address {
-                payload: Payload::WitnessProgram {
-                    version: version,
-                    program: program,
-                },
-                network: network,
-            });
+                return Ok(Address {
+                    payload: Payload::WitnessProgram {
+                        version: version,
+                        program: program,
+                    },
+                    network: network,
+                });
+            }
         }
 
         // Base58
         if s.len() > 50 {
+            if tried_bech32 == true {
+                return Err(Error::EmptyBech32Payload);
+            }
             return Err(Error::Base58(base58::Error::InvalidLength(s.len() * 11 / 15)));
         }
         let data = base58::from_check(s)?;
         if data.len() != 21 {
+            if tried_bech32 == true {
+                return Err(Error::EmptyBech32Payload);
+            }
             return Err(Error::Base58(base58::Error::InvalidLength(data.len())));
         }
 
@@ -475,7 +484,12 @@ impl FromStr for Address {
                 Network::Testnet,
                 Payload::ScriptHash(ScriptHash::from_slice(&data[1..]).unwrap()),
             ),
-            x => return Err(Error::Base58(base58::Error::InvalidVersion(vec![x]))),
+            x => {
+                if tried_bech32 == true {
+                    return Err(Error::EmptyBech32Payload);
+                }
+                return Err(Error::Base58(base58::Error::InvalidVersion(vec![x])));
+            }
         };
 
         Ok(Address {
