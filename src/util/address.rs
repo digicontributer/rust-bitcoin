@@ -417,12 +417,15 @@ impl FromStr for Address {
         };
         if let Some(network) = bech32_network {
             // decode as bech32
-            let (_, payload) = bech32::decode(s)?;
-            if payload.is_empty() {
+            if let Err(_e) = bech32::decode(s) {
                 tried_bech32 = true;
             }
 
             if tried_bech32 == false {
+                let (_, payload) = bech32::decode(s)?;
+                if payload.is_empty() {
+                    return Err(Error::EmptyBech32Payload);
+                }
                 // Get the script version and program (converted from 5-bit to 8-bit)
                 let (version, program): (bech32::u5, Vec<u8>) = {
                     let (v, p5) = payload.split_at(1);
@@ -455,14 +458,14 @@ impl FromStr for Address {
         // Base58
         if s.len() > 50 {
             if tried_bech32 == true {
-                return Err(Error::EmptyBech32Payload);
+                return Err(Error::Bech32(bech32::Error::MixedCase));
             }
             return Err(Error::Base58(base58::Error::InvalidLength(s.len() * 11 / 15)));
         }
         let data = base58::from_check(s)?;
         if data.len() != 21 {
             if tried_bech32 == true {
-                return Err(Error::EmptyBech32Payload);
+                return Err(Error::Bech32(bech32::Error::MixedCase));
             }
             return Err(Error::Base58(base58::Error::InvalidLength(data.len())));
         }
@@ -486,7 +489,7 @@ impl FromStr for Address {
             ),
             x => {
                 if tried_bech32 == true {
-                    return Err(Error::EmptyBech32Payload);
+                    return Err(Error::Bech32(bech32::Error::MixedCase));
                 }
                 return Err(Error::Base58(base58::Error::InvalidVersion(vec![x])));
             }
